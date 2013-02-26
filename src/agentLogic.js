@@ -24,12 +24,42 @@ var validate = require('./validate');
 var emitter = require('./emitterModule').getEmitter();
 var config = require('./config.js');
 var crypto = require('crypto');
+var userSrv = require('./userDBcluster');
 
 var path = require('path');
 var log = require('PDITCLogger');
 var logger = log.newLogger();
 logger.prefix = path.basename(module.filename, '.js');
 
+//Functions to handle users
+function getUsers(req, res) {
+  'use strict';
+  var users = userSrv.getUsers();
+  res.send({ok: true, host: req.headers.host, users: users});
+}
+
+function getOneUser(req, res) {
+  'use strict';
+  var id = req.param('idUser', null);
+  var user = userSrv.getOneUser(id);
+  res.send({ok: true, host: req.headers.host, user: user});
+}
+
+function registerUser(req, res) {
+  'use strict';
+  var userId = userSrv.addUser(req.body);
+  res.send({ok: true, data: userId});
+}
+
+function deleteUser(req, res){
+  'use strict';
+  var id = req.param('idUser', null);
+  userSrv.deleteUser(id, function(){
+    res.send({ok: true});
+  });
+}
+
+//Functions to handle transactions an queues
 function postTrans(req, res) {
   'use strict';
   var errors = validate.errorsTrans(req.body);
@@ -662,6 +692,10 @@ function transMeta(req, res) {
   }
 }
 
+exports.getUsers = getUsers;
+exports.getOneUser = getOneUser;
+exports.registerUser = registerUser;
+exports.deleteUser = deleteUser;
 
 exports.getQueue = getQueue;
 exports.popQueue = popQueue;

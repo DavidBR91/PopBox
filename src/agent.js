@@ -137,6 +137,14 @@ if (cluster.isMaster && numCPUs !== 0) {
     server.use(pdilogger.pdiLogger());
     server.use(promoteSlave.checkAndPromote());
     server.get('/', deployInfo.showDeployInfo);
+
+    //Rest api to manage users
+    server.get('/users', logic.getUsers);
+    server.get('/users/:userId', logic.getOneUser);
+    server.post('/users', logic.registerUser);
+    server.delete('/users/:userId', logic.deleteUser);
+
+    //Rest api to manage transactions and queues
     server.del('/trans/:id_trans', logic.deleteTrans);
     //app.get('/trans/:id_trans/state/:state?', logic.transState);
     server.get('/trans/:id_trans', logic.transMeta);
