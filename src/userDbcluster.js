@@ -19,6 +19,7 @@
  please contact with::dtc_support@tid.es
  */
 var mongoose = require('mongoose');
+var config = require('./config');
 
 var userSchema = mongoose.Schema({
   name: {type: String, required: true},
@@ -31,7 +32,6 @@ function getUsers(cb) {
   'use strict';
 
   UserModel.find(function (err, users){
-    if(err) {} //TODO handle errors
     cb(err, users);
   });
 }
@@ -39,7 +39,6 @@ function getUsers(cb) {
 function getOneUser(id, cb) {
   'use strict';
   UserModel.findById(id, function(err, user){
-    if (err) {} //TODO handle errors
     cb(err, user);
   });
 }
@@ -51,7 +50,6 @@ function addUser(body, cb) {
     password: body.password
   });
   user.save(function (err, userSaved) {
-    if (err){} //TODO handle error
     cb(err, user.id);
   });
 }
@@ -59,7 +57,6 @@ function addUser(body, cb) {
 function deleteUser(id, cb) {
   'use strict';
   UserModel.findById(id, function(err, user){
-    if (err) {} //TODO handle errors
       user.remove(function(err){
         if (err){}
         cb(err);
@@ -67,7 +64,13 @@ function deleteUser(id, cb) {
   });
 }
 
+function connectToDb (){
+  mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
+   config.userDatabase.port + '/' + config.userDatabase.name);
+}
+
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
 exports.getOneUser = getOneUser;
 exports.getUsers = getUsers;
+exports.connecToDb = connectToDb;
