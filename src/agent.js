@@ -25,6 +25,7 @@ var config = require('./config.js');
 var path = require('path');
 var log = require('PDITCLogger');
 var deployInfo = require('./deployInfo.js');
+var mongoose = require('mongoose');
 
 log.setConfig(config.logger);
 var logger = log.newLogger();
@@ -48,6 +49,7 @@ logger.info('V8 version:', process.versions.v8);
 logger.info('Current directory: ', process.cwd());
 logger.info('POPBOX_DIR_PREFIX: ', process.env.POPBOX_DIR_PREFIX);
 
+mongoose.connect('mongodb://localhost:27017/pruebapopbox');
 
 if (config.cluster.numcpus >= 0 && config.cluster.numcpus < numCPUs) {
   numCPUs = config.cluster.numcpus;
@@ -135,14 +137,15 @@ if (cluster.isMaster && numCPUs !== 0) {
     server.use(prefixer.prefixer(server.prefix));
     server.use(sendrender.sendRender());
     server.use(pdilogger.pdiLogger());
+    server.use(server.router);
     server.use(promoteSlave.checkAndPromote());
     server.get('/', deployInfo.showDeployInfo);
 
     //Rest api to manage users
+    server.del('/users/:user_id', logic.deleteUser);
+    server.get('/users/:user_id', logic.getOneUser);
     server.get('/users', logic.getUsers);
-    server.get('/users/:userId', logic.getOneUser);
     server.post('/users', logic.registerUser);
-    server.delete('/users/:userId', logic.deleteUser);
 
     //Rest api to manage transactions and queues
     server.del('/trans/:id_trans', logic.deleteTrans);

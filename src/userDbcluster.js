@@ -27,50 +27,43 @@ var userSchema = mongoose.Schema({
 
 var UserModel = mongoose.model('UserModel', userSchema);
 
-function getUsers() {
+function getUsers(cb) {
   'use strict';
-  var res;
+
   UserModel.find(function (err, users){
     if(err) {} //TODO handle errors
-    else
-      res = users;
+    cb(err, users);
   });
-  return res;
 }
 
-function getOneUser(id) {
+function getOneUser(id, cb) {
   'use strict';
-  var res;
   UserModel.findById(id, function(err, user){
     if (err) {} //TODO handle errors
-    else
-      res = user;
+    cb(err, user);
   });
-  return res;
 }
 
-function addUser(body) {
+function addUser(body, cb) {
   'use strict';
-  var res;
   var user = new UserModel({
     name: body.name,
     password: body.password
   });
-  user.save(function (err, user) {
-  if (err){} //TODO handle error
-    else
-      res = user.ObjectId;
+  user.save(function (err, userSaved) {
+    if (err){} //TODO handle error
+    cb(err, user.id);
   });
-  return res;
 }
 
 function deleteUser(id, cb) {
   'use strict';
-  var res;
   UserModel.findById(id, function(err, user){
     if (err) {} //TODO handle errors
-    else
-      cb();
+      user.remove(function(err){
+        if (err){}
+        cb(err);
+      });
   });
 }
 
@@ -78,4 +71,3 @@ exports.deleteUser = deleteUser;
 exports.addUser = addUser;
 exports.getOneUser = getOneUser;
 exports.getUsers = getUsers;
-exports.userModel = userModel;

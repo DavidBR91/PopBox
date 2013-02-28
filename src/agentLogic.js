@@ -24,7 +24,7 @@ var validate = require('./validate');
 var emitter = require('./emitterModule').getEmitter();
 var config = require('./config.js');
 var crypto = require('crypto');
-var userSrv = require('./userDBcluster');
+var userSrv = require('./userDbcluster');
 
 var path = require('path');
 var log = require('PDITCLogger');
@@ -34,26 +34,29 @@ logger.prefix = path.basename(module.filename, '.js');
 //Functions to handle users
 function getUsers(req, res) {
   'use strict';
-  var users = userSrv.getUsers();
-  res.send({ok: true, host: req.headers.host, users: users});
+  userSrv.getUsers(function(err, users){
+    res.send({ok: true, host: req.headers.host, users: users});
+  });
 }
 
 function getOneUser(req, res) {
   'use strict';
-  var id = req.param('idUser', null);
-  var user = userSrv.getOneUser(id);
-  res.send({ok: true, host: req.headers.host, user: user});
+  var id = req.param('user_id', null);
+  userSrv.getOneUser(id, function(err, user){
+    res.send({ok: true, host: req.headers.host, user: user});
+  });
 }
 
 function registerUser(req, res) {
   'use strict';
-  var userId = userSrv.addUser(req.body);
-  res.send({ok: true, data: userId});
+  userSrv.addUser(req.body, function(err, id){
+    res.send({ok: true, data: id});
+  });
 }
 
 function deleteUser(req, res){
   'use strict';
-  var id = req.param('idUser', null);
+  var id = req.param('user_id', null);
   userSrv.deleteUser(id, function(){
     res.send({ok: true});
   });
@@ -134,8 +137,6 @@ function putTransMeta(req, res) {
   'use strict';
   var id = req.param('id_trans', null),
       empty = true, filteredReq = {}, errorsP, errorsExpDate, errors = [];
-
-
   filteredReq.payload = req.body.payload;
   filteredReq.callback = req.body.callback;
   filteredReq.expirationDate = req.body.expirationDate;
