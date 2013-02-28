@@ -58,7 +58,6 @@ function deleteUser(id, cb) {
   'use strict';
   UserModel.findById(id, function(err, user){
       user.remove(function(err){
-        if (err){}
         cb(err);
       });
   });

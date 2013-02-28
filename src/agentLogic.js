@@ -52,15 +52,13 @@ function getOneUser(req, res) {
       if(err){
         logger.info('onGetUser', [String(err), 500, req.info]);
         res.send({errors: [String(err)]}, 500);
+      } else {
+        res.send({ok: true, host: req.headers.host, user: user});
       }
-      res.send({ok: true, host: req.headers.host, user: user});
   });
   } else {
-    logger.info('userState', [
-      {errors: ['missing id']},
-      400,
-      req.info
-    ]);
+    logger.info('userState',
+      [{errors: ['missing id']}, 400, req.info]);
     res.send({errors: ['missing id']}, 400);
   }
 }
@@ -77,7 +75,13 @@ function registerUser(req, res) {
     res.send({ok: true, data: 'empty data'});
   } else {
     userSrv.addUser(req.body, function(err, id){
-      res.send({ok: true, data: id});
+      if(err){
+          logger.info('addUser',
+            [{errors: [String(err)]}, 400, req.info]);
+        res.send([{errors: [err]}, 500]);
+      }else {
+        res.send({ok: true, data: id});
+      }
     });
   }
 }
@@ -86,15 +90,17 @@ function deleteUser(req, res){
   'use strict';
   var id = req.param('user_id', null);
   if(id){
-    userSrv.deleteUser(id, function(){
-      res.send({ok: true});
+    userSrv.deleteUser(id, function(err){
+      if(err){
+        logger.info('deleteTrans',[{errors: [e]}, 400, req.info]);
+        res.send({errors: [e]}, 400);
+      } else {
+        res.send({ok: true});
+      }
     });
   } else {
-    logger.info('userState', [
-      {errors: ['missing id']},
-      400,
-      req.info
-    ]);
+    logger.info('userState',
+      [{errors: ['missing id']}, 400, req.info]);
     res.send({errors: ['missing id']}, 400);
   }
 }
