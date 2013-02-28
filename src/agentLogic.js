@@ -35,31 +35,68 @@ logger.prefix = path.basename(module.filename, '.js');
 function getUsers(req, res) {
   'use strict';
   userSrv.getUsers(function(err, users){
-    res.send({ok: true, host: req.headers.host, users: users});
+    if(err){
+      logger.info('onGetUsers', [String(err), 500, req.info]);
+      res.send({errors: [String(err)]}, 500);
+    }
+    else
+      res.send({ok: true, host: req.headers.host, users: users});
   });
 }
 
 function getOneUser(req, res) {
   'use strict';
   var id = req.param('user_id', null);
-  userSrv.getOneUser(id, function(err, user){
-    res.send({ok: true, host: req.headers.host, user: user});
+  if(id){
+    userSrv.getOneUser(id, function(err, user){
+      if(err){
+        logger.info('onGetUser', [String(err), 500, req.info]);
+        res.send({errors: [String(err)]}, 500);
+      }
+      res.send({ok: true, host: req.headers.host, user: user});
   });
+  } else {
+    logger.info('userState', [
+      {errors: ['missing id']},
+      400,
+      req.info
+    ]);
+    res.send({errors: ['missing id']}, 400);
+  }
 }
 
 function registerUser(req, res) {
   'use strict';
-  userSrv.addUser(req.body, function(err, id){
-    res.send({ok: true, data: id});
-  });
+  var empty = (req.body.name === undefined) &&
+      (req.body.password === undefined);
+  if(empty){
+    logger.info('putTransMeta', [
+      {ok: true, data: 'empty data'},
+      req.info
+    ]);
+    res.send({ok: true, data: 'empty data'});
+  } else {
+    userSrv.addUser(req.body, function(err, id){
+      res.send({ok: true, data: id});
+    });
+  }
 }
 
 function deleteUser(req, res){
   'use strict';
   var id = req.param('user_id', null);
-  userSrv.deleteUser(id, function(){
-    res.send({ok: true});
-  });
+  if(id){
+    userSrv.deleteUser(id, function(){
+      res.send({ok: true});
+    });
+  } else {
+    logger.info('userState', [
+      {errors: ['missing id']},
+      400,
+      req.info
+    ]);
+    res.send({errors: ['missing id']}, 400);
+  }
 }
 
 //Functions to handle transactions an queues
