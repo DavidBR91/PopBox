@@ -43,6 +43,8 @@ var pdilogger = require('./pdiLogger');
 
 var promoteSlave = require('./promoteExprMdwr.js');
 
+var passport = require('passport');
+
 logger.info('Node version:', process.versions.node);
 logger.info('V8 version:', process.versions.v8);
 logger.info('Current directory: ', process.cwd());
@@ -80,6 +82,9 @@ if (cluster.isMaster && numCPUs !== 0) {
   app.port = config.agent.port;
   app._backlog = 2048;
   servers.push(app);
+
+  var MemoryStore = express.session.MemoryStore,
+  sessionStore = new MemoryStore();
 
   var optionsDir;
   logger.info('config.enableSecure', config.enableSecure);
@@ -129,20 +134,28 @@ if (cluster.isMaster && numCPUs !== 0) {
       server.use(express.logger(config.connectLogger));
     }
     server.use(express.query());
+    server.use(express.cookieParser());
     server.use(express.bodyParser());
+    server.use(express.methodOverride());
     server.use(express.limit(config.agent.maxReqSize));
     server.use(prefixer.prefixer(server.prefix));
     server.use(sendrender.sendRender());
     server.use(pdilogger.pdiLogger());
+    server.use(express.session({
+      store: sesionStore,
+      secret: 'secret'
+    }));
+    server.use(passport.initialize());
+    server.use(passport.session());
     server.use(server.router);
     server.use(promoteSlave.checkAndPromote());
     server.get('/', deployInfo.showDeployInfo);
 
     //Rest api to manage users
-
     server.get('/users/:user_id', logic.getOneUser);
     server.get('/users', logic.getUsers);
     server.post('/users', logic.registerUser);
+    server.del('users/:user_id', logic.deleteUser);
 
     //Rest api to manage transactions and queues
     server.del('/trans/:id_trans', logic.deleteTrans);

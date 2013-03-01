@@ -20,14 +20,79 @@
  */
 var mongoose = require('mongoose');
 var config = require('./config');
+var passport = require('passport');
+var bcrypt = require('bcrypt');
 
-var userSchema = mongoose.Schema({
+var UserSchema = mongoose.Schema({
   name: {type: String, required: true},
-  password: {type: String, required: true}
+  email: {type:String, required: true},
+
+  salt: {type:String, required: true},
+  hash: {type:String, required: true}
 });
 
-var UserModel = mongoose.model('UserModel', userSchema);
+var UserModel = mongoose.model('UserModel', UserSchema);
 
+UserSchema.methods.setPassword = function (password, done) {
+    var that = this;
+    bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(password, salt, function(err, hash) {
+            that.hash = hash;
+            that.salt = salt;
+            done(that);
+        });
+    });
+};
+
+// Passport strategy and user serialization
+
+// Passport session setup.
+passport.serializeUser(function (user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function (id, done) {
+  UserModel.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
+
+// Use the LocalStrategy within Passport.
+passport.use(new LocalStrategy({
+    usernameField: 'name'
+  },
+  function(email, password, done) {
+    UserModel.authenticate(email, password, function(err, user) {
+      return done(err, user);
+    });
+  }
+));
+
+UserSchema.method('verifyPassword', function(password, callback) {
+  bcrypt.compare(password, this.hash, callback);
+});
+
+UserSchema.static('authenticate', function(name, password, callback) {
+  UserModel.findOne({ name: name }, function(err, user) {
+      if (err) {
+        return callback(err);
+      }
+      if (!user) {
+        return callback(null, false);
+      }
+      user.verifyPassword(password, function(err, passwordCorrect) {
+        if (err) {
+          return callback(err);
+        }
+        if (!passwordCorrect) {
+          return callback(null, false);
+        }
+        return callback(null, user);
+      });
+    });
+});
+
+//User methods
 function getUsers(cb) {
   'use strict';
 
@@ -46,11 +111,11 @@ function getOneUser(id, cb) {
 function addUser(body, cb) {
   'use strict';
   var user = new UserModel({
-    name: body.name,
-    password: body.password
-  });
-  user.save(function (err, userSaved) {
-    cb(err, user.id);
+    name: body.name
+  }).setPassword(req.param("password"), function(newUser) {
+      newUser.save(function(err) {
+        cb(err, newUser.id);
+      });
   });
 }
 
