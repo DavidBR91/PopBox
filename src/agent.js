@@ -152,8 +152,6 @@ if (cluster.isMaster && numCPUs !== 0) {
     server.get('/', deployInfo.showDeployInfo);
 
     //Rest api to manage users
-    server.get('/users/:user_id', logic.getOneUser);
-    server.get('/users', logic.getUsers);
     server.post('/users', logic.registerUser);
     server.del('users/:user_id', logic.deleteUser);
 

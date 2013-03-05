@@ -32,37 +32,6 @@ var logger = log.newLogger();
 logger.prefix = path.basename(module.filename, '.js');
 
 //Functions to handle users
-function getUsers(req, res) {
-  'use strict';
-  userSrv.getUsers(function(err, users){
-    if(err){
-      logger.info('onGetUsers', [String(err), 500, req.info]);
-      res.send({errors: [String(err)]}, 500);
-    }
-    else
-      res.send({ok: true, host: req.headers.host, users: users});
-  });
-}
-
-function getOneUser(req, res) {
-  'use strict';
-  var id = req.param('user_id', null);
-  if(id){
-    userSrv.getOneUser(id, function(err, user){
-      if(err){
-        logger.info('onGetUser', [String(err), 500, req.info]);
-        res.send({errors: [String(err)]}, 500);
-      } else {
-        res.send({ok: true, host: req.headers.host, user: user});
-      }
-  });
-  } else {
-    logger.info('userState',
-      [{errors: ['missing id']}, 400, req.info]);
-    res.send({errors: ['missing id']}, 400);
-  }
-}
-
 function registerUser(req, res) {
   'use strict';
   var empty = (req.body.name === undefined) &&

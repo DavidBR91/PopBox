@@ -93,21 +93,6 @@ UserSchema.static('authenticate', function(name, password, callback) {
 });
 
 //User methods
-function getUsers(cb) {
-  'use strict';
-
-  UserModel.find(function (err, users){
-    cb(err, users);
-  });
-}
-
-function getOneUser(id, cb) {
-  'use strict';
-  UserModel.findById(id, function(err, user){
-    cb(err, user);
-  });
-}
-
 function addUser(body, cb) {
   'use strict';
   var user = new UserModel({
