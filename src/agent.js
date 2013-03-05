@@ -152,8 +152,12 @@ if (cluster.isMaster && numCPUs !== 0) {
     server.get('/', deployInfo.showDeployInfo);
 
     //Rest api to manage users
-    server.post('/users', logic.registerUser);
-    server.del('users/:user_id', logic.deleteUser);
+    server.get('/login', logic.getLogin);
+    server.post('/login', logic.login);
+    server.get('/logout', logic.logout);
+    server.get('/register', logic.register);
+    server.post('/users', ensureAuthenticated, logic.registerUser);
+    server.del('users/:user_id', ensureAuthenticated, logic.deleteUser);
 
     //Rest api to manage transactions and queues
     server.del('/trans/:id_trans', logic.deleteTrans);
@@ -213,7 +217,10 @@ process.on('uncaughtException', function onUncaughtException(err) {
   }
 });
 
-
-
-
-
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+}

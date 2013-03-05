@@ -25,11 +25,32 @@ var emitter = require('./emitterModule').getEmitter();
 var config = require('./config.js');
 var crypto = require('crypto');
 var userSrv = require('./userDbcluster');
+var passport = require('passport');
 
 var path = require('path');
 var log = require('PDITCLogger');
 var logger = log.newLogger();
 logger.prefix = path.basename(module.filename, '.js');
+
+//Functions to handle session
+function getLogin(req, res) {
+  // TODO login
+}
+
+function login(req, res) {
+  req.login( function(user, err){
+    if(err) {
+      return next(err);
+    }
+    return res.redirect('/');
+  });
+}
+
+function register(req, res) {
+  registerUser(req, function(req, res){
+  // TODO registration
+  });
+}
 
 //Functions to handle users
 function registerUser(req, res) {
@@ -37,7 +58,7 @@ function registerUser(req, res) {
   var empty = (req.body.name === undefined) &&
       (req.body.password === undefined);
   if(empty){
-    logger.info('putTransMeta', [
+    logger.info('addUser', [
       {ok: true, data: 'empty data'},
       req.info
     ]);
