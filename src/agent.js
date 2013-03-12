@@ -43,11 +43,12 @@ var pdilogger = require('./pdiLogger');
 
 var promoteSlave = require('./promoteExprMdwr.js');
 
+var passport = require('passport');
+
 logger.info('Node version:', process.versions.node);
 logger.info('V8 version:', process.versions.v8);
 logger.info('Current directory: ', process.cwd());
 logger.info('POPBOX_DIR_PREFIX: ', process.env.POPBOX_DIR_PREFIX);
-
 
 if (config.cluster.numcpus >= 0 && config.cluster.numcpus < numCPUs) {
   numCPUs = config.cluster.numcpus;
@@ -81,6 +82,9 @@ if (cluster.isMaster && numCPUs !== 0) {
   app.port = config.agent.port;
   app._backlog = 2048;
   servers.push(app);
+
+  var MemoryStore = express.session.MemoryStore,
+  sessionStore = new MemoryStore();
 
   var optionsDir;
   logger.info('config.enableSecure', config.enableSecure);
@@ -130,13 +134,32 @@ if (cluster.isMaster && numCPUs !== 0) {
       server.use(express.logger(config.connectLogger));
     }
     server.use(express.query());
+    server.use(express.cookieParser());
     server.use(express.bodyParser());
+    server.use(express.methodOverride());
     server.use(express.limit(config.agent.maxReqSize));
     server.use(prefixer.prefixer(server.prefix));
     server.use(sendrender.sendRender());
     server.use(pdilogger.pdiLogger());
+    server.use(express.session({
+      store: sesionStore,
+      secret: 'secret'
+    }));
+    server.use(passport.initialize());
+    server.use(passport.session());
+    server.use(server.router);
     server.use(promoteSlave.checkAndPromote());
     server.get('/', deployInfo.showDeployInfo);
+
+    //Rest api to manage users
+    server.get('/login', logic.getLogin);
+    server.post('/login', logic.login);
+    server.get('/logout', logic.logout);
+    server.get('/register', logic.register);
+    server.post('/users', ensureAuthenticated, logic.registerUser);
+    server.del('users/:user_id', ensureAuthenticated, logic.deleteUser);
+
+    //Rest api to manage transactions and queues
     server.del('/trans/:id_trans', logic.deleteTrans);
     //app.get('/trans/:id_trans/state/:state?', logic.transState);
     server.get('/trans/:id_trans', logic.transMeta);
@@ -194,7 +217,10 @@ process.on('uncaughtException', function onUncaughtException(err) {
   }
 });
 
-
-
-
-
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+}

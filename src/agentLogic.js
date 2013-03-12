@@ -24,12 +24,78 @@ var validate = require('./validate');
 var emitter = require('./emitterModule').getEmitter();
 var config = require('./config.js');
 var crypto = require('crypto');
+var userSrv = require('./userDbcluster');
+var passport = require('passport');
 
 var path = require('path');
 var log = require('PDITCLogger');
 var logger = log.newLogger();
 logger.prefix = path.basename(module.filename, '.js');
 
+//Functions to handle session
+function getLogin(req, res) {
+  // TODO login
+}
+
+function login(req, res) {
+  req.login( function(user, err){
+    if(err) {
+      return next(err);
+    }
+    return res.redirect('/');
+  });
+}
+
+function register(req, res) {
+  registerUser(req, function(req, res){
+  // TODO registration
+  });
+}
+
+//Functions to handle users
+function registerUser(req, res) {
+  'use strict';
+  var empty = (req.body.name === undefined) &&
+      (req.body.password === undefined);
+  if(empty){
+    logger.info('addUser', [
+      {ok: true, data: 'empty data'},
+      req.info
+    ]);
+    res.send({ok: true, data: 'empty data'});
+  } else {
+    userSrv.addUser(req.body, function(err, id){
+      if(err){
+          logger.info('addUser',
+            [{errors: [String(err)]}, 400, req.info]);
+        res.send([{errors: [err]}, 500]);
+      }else {
+        res.send({ok: true, data: id});
+      }
+    });
+  }
+}
+
+function deleteUser(req, res){
+  'use strict';
+  var id = req.param('user_id', null);
+  if(id){
+    userSrv.deleteUser(id, function(err){
+      if(err){
+        logger.info('deleteTrans',[{errors: [e]}, 400, req.info]);
+        res.send({errors: [e]}, 400);
+      } else {
+        res.send({ok: true});
+      }
+    });
+  } else {
+    logger.info('userState',
+      [{errors: ['missing id']}, 400, req.info]);
+    res.send({errors: ['missing id']}, 400);
+  }
+}
+
+//Functions to handle transactions an queues
 function postTrans(req, res) {
   'use strict';
   var errors = validate.errorsTrans(req.body);
@@ -104,8 +170,6 @@ function putTransMeta(req, res) {
   'use strict';
   var id = req.param('id_trans', null),
       empty = true, filteredReq = {}, errorsP, errorsExpDate, errors = [];
-
-
   filteredReq.payload = req.body.payload;
   filteredReq.callback = req.body.callback;
   filteredReq.expirationDate = req.body.expirationDate;
@@ -662,6 +726,10 @@ function transMeta(req, res) {
   }
 }
 
+exports.getUsers = getUsers;
+exports.getOneUser = getOneUser;
+exports.registerUser = registerUser;
+exports.deleteUser = deleteUser;
 
 exports.getQueue = getQueue;
 exports.popQueue = popQueue;

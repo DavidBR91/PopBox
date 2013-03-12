@@ -59,6 +59,13 @@ exports.showDeployInformation = true;
 
 /**
  *
+ * @type {Object} ex. { host:'hostname', port: 'port'}
+ *
+ */
+exports.userDatabase = {host: 'localhost', port: 27017,
+    name: 'pruebapopbox'};
+/**
+ *
  * @type {Array} ex. [{host:'localhost'}, {host:'localhost', port:'6789'}]
  */
 //exports.redisServers = [{host:'localhost'}, {host:'localhost', port:'6789'}];
