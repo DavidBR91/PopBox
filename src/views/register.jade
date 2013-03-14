@@ -1,0 +1,44 @@
+div
+  p
+    h1 Sign up
+  form(method='post', action='/register')
+
+  p
+    label User
+    input(type='text', name='name')
+  p
+    label Password
+    input(type='password', name='pass', id='newPassword')
+  p
+    label Confirm Password
+    input(type='password', id='confirmPassword')
+  p
+    button(type="submit") Sign up
+div
+  a(href='/login') Go back to Login
+
+script(type='text/javascript', src='js/jquery-1.4.2.min.js')
+script(type='text/javascript', src='js/jquery.form.js')
+script(type='text/javascript', src='js/jquery.validate.js')
+script(type='text/javascript', src='js/jquery-ui-1.8.5.custom.min.js')
+
+script
+
+  $('#newPassword').change(function(){
+    checkPasswordMatch();
+  });
+
+  $('#confirmPassword').change(function(){
+    checkPasswordMatch();
+  });
+
+  function checkPasswordMatch() {
+    var password = $('#newPassword').val();
+    var confirmPassword = $('#confirmPassword').val();
+
+    if(password != confirmPassword) {
+      return false
+    } else {
+      return true;
+    }
+  }

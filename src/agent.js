@@ -155,8 +155,9 @@ if (cluster.isMaster && numCPUs !== 0) {
     server.get('/login', logic.getLogin);
     server.post('/login', logic.login);
     server.get('/logout', logic.logout);
-    server.get('/register', logic.register);
-    server.post('/users', ensureAuthenticated, logic.registerUser);
+    server.get('/register', logic.getRegister);
+    server.post('/register', logic.register);
+    server.post('/users', logic.registerUser);
     server.del('users/:user_id', ensureAuthenticated, logic.deleteUser);
 
     //Rest api to manage transactions and queues

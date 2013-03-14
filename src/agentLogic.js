@@ -50,11 +50,15 @@ function login(req, res) {
   });
 }
 
-function register(req, res) {
+function getRegister(req, res) {
   'use strict';
   var info = {};
   req.template = 'register.jade';
   res.send(info);
+}
+
+function register(req, res) {
+  //TODO
 }
 
 //Functions to handle users
