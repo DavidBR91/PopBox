@@ -22,6 +22,7 @@ var mongoose = require('mongoose');
 var config = require('./config');
 var passport = require('passport');
 var bcrypt = require('bcrypt');
+var LocalStrategy = require('passport-local').Strategy;
 
 var UserSchema = mongoose.Schema({
   name: {type: String, required: true},
@@ -120,6 +121,4 @@ function connectToDb (){
 
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
-exports.getOneUser = getOneUser;
-exports.getUsers = getUsers;
 exports.connecToDb = connectToDb;

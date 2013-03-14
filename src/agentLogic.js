@@ -34,11 +34,15 @@ logger.prefix = path.basename(module.filename, '.js');
 
 //Functions to handle session
 function getLogin(req, res) {
-  // TODO login
+  'use strict';
+  var info = {};
+  req.template =  'login.jade';
+  res.send(info);
 }
 
 function login(req, res) {
-  req.login( function(user, err){
+  'use strict';
+  req.login(function(user, err){
     if(err) {
       return next(err);
     }
@@ -47,9 +51,10 @@ function login(req, res) {
 }
 
 function register(req, res) {
-  registerUser(req, function(req, res){
-  // TODO registration
-  });
+  'use strict';
+  var info = {};
+  req.template = 'register.jade';
+  res.send(info);
 }
 
 //Functions to handle users
@@ -726,8 +731,9 @@ function transMeta(req, res) {
   }
 }
 
-exports.getUsers = getUsers;
-exports.getOneUser = getOneUser;
+exports.getLogin = getLogin;
+exports.login = login;
+exports.register = register;
 exports.registerUser = registerUser;
 exports.deleteUser = deleteUser;
 

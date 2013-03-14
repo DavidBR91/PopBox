@@ -142,7 +142,7 @@ if (cluster.isMaster && numCPUs !== 0) {
     server.use(sendrender.sendRender());
     server.use(pdilogger.pdiLogger());
     server.use(express.session({
-      store: sesionStore,
+      store: sessionStore,
       secret: 'secret'
     }));
     server.use(passport.initialize());
@@ -218,6 +218,7 @@ process.on('uncaughtException', function onUncaughtException(err) {
 });
 
 function ensureAuthenticated(req, res, next) {
+  'use strict';
   if (req.isAuthenticated()) {
     return next();
   } else {

@@ -1,0 +1,15 @@
+div
+  p
+    h1 Login
+  form(method='post', action='/login')
+
+  p
+    label User
+    input(type='text',name='name')
+  p
+    label Password
+    input(type='password',name='pass')
+  p
+    button(type="submit") Login
+div
+  a(href='/register') Sign up
