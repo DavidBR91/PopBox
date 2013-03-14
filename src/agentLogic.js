@@ -42,12 +42,8 @@ function getLogin(req, res) {
 
 function login(req, res) {
   'use strict';
-  req.login(function(user, err){
-    if(err) {
-      return next(err);
-    }
-    return res.redirect('/');
-  });
+  passport.authenticate('local', { successRedirect: '/',
+      failureRedirect: '/login' });
 }
 
 function getRegister(req, res) {
@@ -58,12 +54,15 @@ function getRegister(req, res) {
 }
 
 function register(req, res) {
-  //TODO
+  console.log('entra');
+  registerUser(req, res);
+  res.redirect('/login');
 }
 
 //Functions to handle users
 function registerUser(req, res) {
   'use strict';
+  console.log(req.body);
   var empty = (req.body.name === undefined) &&
       (req.body.password === undefined);
   if(empty){
@@ -737,6 +736,7 @@ function transMeta(req, res) {
 
 exports.getLogin = getLogin;
 exports.login = login;
+exports.getRegister = getRegister;
 exports.register = register;
 exports.registerUser = registerUser;
 exports.deleteUser = deleteUser;
