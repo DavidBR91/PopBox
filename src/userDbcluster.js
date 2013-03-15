@@ -26,15 +26,16 @@ var LocalStrategy = require('passport-local').Strategy;
 
 var UserSchema = mongoose.Schema({
   name: {type: String, required: true},
-  email: {type:String, required: true},
+  email: {type: String, required: true},
 
-  salt: {type:String, required: true},
-  hash: {type:String, required: true}
+  password: {type:String, required: true}
+  //salt: {type:String, required: true},
+  //hash: {type:String, required: true}
 });
 
 var UserModel = mongoose.model('UserModel', UserSchema);
 
-UserSchema.methods.setPassword = function (password, done) {
+/*UserSchema.methods.setPassword = function (password, done) {
     var that = this;
     bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(password, salt, function(err, hash) {
@@ -43,7 +44,7 @@ UserSchema.methods.setPassword = function (password, done) {
             done(that);
         });
     });
-};
+};*/
 
 // Passport strategy and user serialization
 
@@ -97,12 +98,18 @@ UserSchema.static('authenticate', function(name, password, callback) {
 function addUser(body, cb) {
   'use strict';
   var user = new UserModel({
-    name: body.name
-  }).setPassword(req.param("password"), function(newUser) {
+    name: body.name,
+    email: body.email,
+    password: body.password
+  });
+  user.save(function(err){
+      cb(err, user.id);
+  });
+  /*}).setPassword(body.password, function(newUser) {
       newUser.save(function(err) {
         cb(err, newUser.id);
       });
-  });
+  });*/
 }
 
 function deleteUser(id, cb) {
@@ -115,6 +122,7 @@ function deleteUser(id, cb) {
 }
 
 function connectToDb (){
+  'use strict';
   mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
    config.userDatabase.port + '/' + config.userDatabase.name);
 }

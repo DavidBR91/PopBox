@@ -7,6 +7,9 @@ div
     label User
     input(type='text', name='name')
   p
+    label Email
+    input(type='text', name='email', id='email')
+  p
     label Password
     input(type='password', name='pass', id='newPassword')
   p
@@ -32,13 +35,30 @@ script
     checkPasswordMatch();
   });
 
+  $('#email').change(function() {
+    validateEmail();
+  });
+
   function checkPasswordMatch() {
     var password = $('#newPassword').val();
     var confirmPassword = $('#confirmPassword').val();
 
     if(password != confirmPassword) {
+      alert('Passwords do not match')
       return false
     } else {
+      alert('Correct')
       return true;
+    }
+  }
+
+  function validateEmail() {
+    var value = $('#email').val();
+    if (/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(value))  {
+      return true;
+    }
+    else {
+      alert('Non valid email');
+      return false;
     }
   }

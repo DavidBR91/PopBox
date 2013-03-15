@@ -54,6 +54,7 @@ function getRegister(req, res) {
 }
 
 function register(req, res) {
+  'use strict';
   console.log('entra');
   registerUser(req, res);
   res.redirect('/login');
@@ -64,7 +65,8 @@ function registerUser(req, res) {
   'use strict';
   console.log(req.body);
   var empty = (req.body.name === undefined) &&
-      (req.body.password === undefined);
+      (req.body.password === undefined) &&
+      (req.body.email === undefined);
   if(empty){
     logger.info('addUser', [
       {ok: true, data: 'empty data'},
@@ -73,6 +75,7 @@ function registerUser(req, res) {
     res.send({ok: true, data: 'empty data'});
   } else {
     userSrv.addUser(req.body, function(err, id){
+      console.log('envia respuesta');
       if(err){
           logger.info('addUser',
             [{errors: [String(err)]}, 400, req.info]);
