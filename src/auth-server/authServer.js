@@ -1,4 +1,6 @@
 var express = require('express');
+var mongoose = require('mongoose');
+var config = require('./config');
 
 var app = express.net.createapp();
 
@@ -6,6 +8,9 @@ app.port(5001);
 app.use(express.query());
 app.use(express.bodyParser());
 app.use(express.router());
+
+mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
+   config.userDatabase.port + '/' + config.userDatabase.name);
 
 //Rest API TODO: logic
 app.post('/users', function (){});
