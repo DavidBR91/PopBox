@@ -24,10 +24,14 @@ function addUser(body, cb) {
   });
 }
 
-function updateInfo(id, param, cb) {
+function updateInfo(id, body, cb) {
   'use strict';
-  UserModel.findByIdandUpdate(id, param, function(){
-      cb(err);
+  UserModel.findById(id, function (err, user){
+    if(body.password === user.password){
+      UserModel.findByIdandUpdate(id, body, function(){
+        cb(err);
+      });
+    }
   });
 }
 
@@ -40,5 +44,6 @@ function deleteUser(id, cb) {
   });
 }
 
+exports.updateInfo = updateInfo;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
