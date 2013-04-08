@@ -28,6 +28,17 @@ function addUser(body, cb) {
   });
 }
 
+function authenticate(name, password, cb) {
+  'use strict';
+  UserModel.find({name: name}, function (err, user){
+    if(password === user.password){
+      cb();
+    }
+    else
+      cb(err);
+  });
+}
+
 function updateInfo(id, body, cb) {
   'use strict';
   UserModel.findById(id, function (err, user){
