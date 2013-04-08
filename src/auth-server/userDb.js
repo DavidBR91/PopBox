@@ -5,7 +5,9 @@ var UserSchema = mongoose.Schema({
   email: {type: String, required: true},
   password: {type: String, required: true},
   memUsed: {type: Number, required: true},
-  maxReq: {type: Number, required: true}
+  maxReq: {type: Number, required: true},
+  queues: [{type: String, required: true}],
+  trans: [{type: String, required: true}]
 });
 
 var UserModel = mongoose.model('UserModel', UserSchema);
@@ -17,7 +19,9 @@ function addUser(body, cb) {
     email: body.email,
     password: body.password,
     memUsed: 0,
-    maxReq: 1000
+    maxReq: 1000,
+    queues: [],
+    trans: []
   });
   user.save(function(err){
       cb(err, user.id);
