@@ -6,8 +6,8 @@ var UserSchema = mongoose.Schema({
   password: {type: String, required: true},
   memUsed: {type: Number, required: true},
   maxReq: {type: Number, required: true},
-  queues: [{type: String, required: true}],
-  trans: [{type: String, required: true}]
+  queues: [{type: String, required: false}],
+  trans: [{type: String, required: false}]
 });
 
 var UserModel = mongoose.model('UserModel', UserSchema);
@@ -19,9 +19,7 @@ function addUser(body, cb) {
     email: body.email,
     password: body.password,
     memUsed: 0,
-    maxReq: 1000,
-    queues: [],
-    trans: []
+    maxReq: 1000
   });
   user.save(function(err){
       cb(err, user.id);
@@ -42,11 +40,13 @@ function authenticate(name, password, cb) {
 function updateInfo(id, body, cb) {
   'use strict';
   UserModel.findById(id, function (err, user){
-    if(body.password === user.password){
+    if((body.name === user.name) && (body.password === user.password)){
       UserModel.findByIdandUpdate(id, body, function(){
         cb(err);
       });
     }
+    else
+      cb(err);
   });
 }
 

@@ -5,10 +5,9 @@ var userDb = require('./userDb');
 
 var app = express.createServer();
 
-app.port = 5001;
+app.listen(7777);
 app.use(express.query());
 app.use(express.bodyParser());
-//app.use(express.router());
 
 mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
    config.userDatabase.port + '/' + config.userDatabase.name);
@@ -16,17 +15,18 @@ mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
 //Rest API TODO: logic
 app.post('/users', function (req, res){
   'use strict';
-  var misingParam = (req.body.name === undefined) ||
+  console.log(req.body);
+  var missingParam = (req.body.name === undefined) ||
     (req.body.password === undefined) ||
     (req.body.email === undefined);
   if(missingParam) {
     res.send({errors: 'missing param'}, 400);
   } else {
-    userDb.addUser(req.body, function (err){
+    userDb.addUser(req.body, function (err, id){
       if(err){
         res.send({errors: [err]}, 400);
       } else {
-        res.send({ok: true}, 200);
+        res.send({ok: true, id: id}, 200);
       }
     });
   }
