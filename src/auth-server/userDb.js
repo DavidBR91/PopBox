@@ -26,14 +26,20 @@ function addUser(body, cb) {
   });
 }
 
+function getUser(id, cb){
+  'use strict';
+  UserModel.findById(id, function (err, user){
+      cb(err, user);
+    });
+}
+
 function authenticate(name, password, cb) {
   'use strict';
+  var authorized = false;
   UserModel.find({name: name}, function (err, user){
-    if(password === user.password){
-      cb();
-    }
-    else
-      cb(err);
+    if(password === user.password)
+      authorized = true;
+    cb(err, authorized);
   });
 }
 
@@ -41,7 +47,7 @@ function updateInfo(id, body, cb) {
   'use strict';
   UserModel.findById(id, function (err, user){
     if((body.name === user.name) && (body.password === user.password)){
-      UserModel.findByIdandUpdate(id, body, function(){
+      UserModel.findByIdAndUpdate(id, body, function(){
         cb(err);
       });
     }
@@ -59,6 +65,8 @@ function deleteUser(id, cb) {
   });
 }
 
+exports.getUser = getUser;
 exports.updateInfo = updateInfo;
+exports.authenticate = authenticate;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
