@@ -3,12 +3,12 @@ var mongoose = require('mongoose');
 var config = require('./config');
 var userDb = require('./userDb');
 
-var app = express.net.createapp();
+var app = express.createServer();
 
-app.port(5001);
+app.port = 5001;
 app.use(express.query());
 app.use(express.bodyParser());
-app.use(express.router());
+//app.use(express.router());
 
 mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
    config.userDatabase.port + '/' + config.userDatabase.name);
@@ -20,13 +20,13 @@ app.post('/users', function (req, res){
     (req.body.password === undefined) ||
     (req.body.email === undefined);
   if(missingParam) {
-    res.send(400);
+    res.send({errors: 'missing param'}, 400);
   } else {
     userDb.addUser(req.body, function (err){
       if(err){
-        res.send(400);
+        res.send({errors: [err]}, 400);
       } else {
-        res.send(200);
+        res.send({ok: true}, 200);
       }
     });
   }
@@ -37,9 +37,9 @@ app.put('users/user_id', function (req, res){
   var id = req.param('user_id', null);
   userDb.updateinfo(id, req.body, function (err){
     if(err){
-      res.send(400);
+      res.send({errors: [err]}, 400);
     } else {
-      res.send(200);
+      res.send({ok: true}, 200);
     }
   });
 });
@@ -49,14 +49,16 @@ app.del('user/user_id', function (req, res){
   var id = req.param('user_id', null);
   userDb.deleteUser(id, function (err){
     if(err){
-      res.send(400);
+      res.send({errors: [err]},400);
     } else {
-      res.send(200);
+      res.send({ok: true}, 200);
     }
   });
 });
 
-app.get('/trans/:id_trans', function (){});
+app.get('/trans/:id_trans', function (){
+  'use strict';
+});
 app.put('/trans/:id_trans', function (){});
 app.post('/trans/:id_trans/payload', function (){});
 app.post('/trans/:id_trans/expirationDate', function (){});
