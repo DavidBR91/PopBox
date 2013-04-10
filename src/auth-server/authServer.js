@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 var config = require('./config');
 var userDb = require('./userDb');
 var utils = require('./utils');
+var _ = require('underscore');
 
 var app = express.createServer();
 
@@ -16,9 +17,7 @@ mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
 //Rest API TODO: logic
 app.get('/users/:user_id', function (req, res){
   'use strict';
-  console.log('entra');
   var id = req.param('user_id', null);
-  console.log(id);
   userDb.getUser(id, function (err, user){
     if(err){
       res.send({errors: [err]}, 400);
@@ -30,7 +29,6 @@ app.get('/users/:user_id', function (req, res){
 
 app.post('/users', function (req, res){
   'use strict';
-  console.log(req.body);
   var missingParam = (req.body.name === undefined) ||
     (req.body.password === undefined) ||
     (req.body.email === undefined);
@@ -49,7 +47,6 @@ app.post('/users', function (req, res){
 
 app.put('/users/:user_id', function (req, res){
   'use strict';
-  console.log(id);
   var id = req.param('user_id', null);
   userDb.updateInfo(id, req.body, function (err){
     if(err){
@@ -79,27 +76,29 @@ app.post('/trans/:id_trans/expirationDate', function (){});
 app.post('/trans/:id_trans/callback', function (){});
 
 app.post('/trans', function (req, res){
-  var id = userDb.authenticate(req.name, req.password);
-  if(id !== undefined){
+  userDb.authenticate(req.body.name, req.body.password, function (id){
+    if(id !== undefined){
     var heads = {};
       heads['content-type'] = 'application/json';
-    var options = { host: config.agentHost[0].host,
-         port: config.agentHost[0].port, path: '/trans/',
+    var options = { host: config.agentHosts[0].host,
+         port: config.agentHosts[0].port, path: '/trans/',
          method: 'POST', headers: heads};
-    utils.makeRequest(options, req.body, function (err, response, data){
+    var body = _.omit(req.body, ['name', 'password']);
+    utils.makeRequest(options, body, function (err, response, data){
       if(err){
         res.send({errors: [err]}, 400);
       } else {
-        userDb.addTrans(id, data.id, function (err) {
+        userDb.addTrans(id, data.data, function (err) {
           if(err) {
             res.send({errors: [err]}, 400);
           } else {
-            res.send({ok: true}, 200);
+            res.send({ok: true, id: data.data}, 200);
           }
         });
-      }
+        }
     });
-  }
+    }
+  });
 });
 
 app.get('/queue/:id', function (){});

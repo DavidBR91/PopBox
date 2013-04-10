@@ -35,11 +35,12 @@ function getUser(id, cb){
 
 function authenticate(name, password, cb) {
   'use strict';
-  var authorized = false;
-  UserModel.find({name: name}, function (err, user){
-    if(password === user.password)
-      authorized = true;
-    cb(err, authorized);
+  var id;
+  UserModel.findOne({name: name}, function (err, user){
+    if(password === user.password) {
+      id = user.id;
+    }
+    cb(id);
   });
 }
 
@@ -65,8 +66,20 @@ function deleteUser(id, cb) {
   });
 }
 
+function addTrans(idUser, idTrans, cb){
+  'use strict';
+  UserModel.findById(idUser, function (err, user){
+    user.trans.push(idTrans);
+    user.save(function(err){
+      cb(err);
+    });
+  });
+}
+
+
 exports.getUser = getUser;
 exports.updateInfo = updateInfo;
+exports.addTrans = addTrans;
 exports.authenticate = authenticate;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
