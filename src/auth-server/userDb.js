@@ -5,6 +5,7 @@ var UserSchema = mongoose.Schema({
   email: {type: String, required: true},
   password: {type: String, required: true},
   memUsed: {type: Number, required: true},
+  maxMem: {type: Number, required: true},
   maxReq: {type: Number, required: true},
   queues: [{type: String, required: false}],
   trans: [{type: String, required: false}]
@@ -18,6 +19,7 @@ function addUser(body, cb) {
     name: body.name,
     email: body.email,
     password: body.password,
+    maxMem: 200000,
     memUsed: 0,
     maxReq: 1000
   });
@@ -76,6 +78,31 @@ function addTrans(idUser, idTrans, cb){
   });
 }
 
+function incMem (idUser, bytes, cb) {
+  'use strict';
+  UserModel.findById(idUser, function (err, user) {
+    var mem = user.memUsed + bytes;
+    if(mem <= user.maxMem) {
+      user.memUsed = mem;
+      user.save(function (err){
+        cb(err);
+      });
+    } else {
+        var error = true;
+        cb(error);
+    }
+  });
+}
+
+function decMem (idUser, bytes, cb) {
+  'use strict';
+  UserModel.findById(idUser, function (err, user) {
+    user.memUsed = user.memUsed - bytes;
+    user.save(function (err) {
+      cb(err);
+    });
+  });
+}
 
 exports.getUser = getUser;
 exports.updateInfo = updateInfo;
@@ -83,3 +110,5 @@ exports.addTrans = addTrans;
 exports.authenticate = authenticate;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
+exports.incMem = incMem,
+exports.decMem = decMem;
