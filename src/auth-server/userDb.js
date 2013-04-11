@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var _ = require('underscore');
 
 var UserSchema = mongoose.Schema({
   name: {type: String, required: true },
@@ -32,17 +33,17 @@ function getUser(id, cb){
   'use strict';
   UserModel.findById(id, function (err, user){
       cb(err, user);
-    });
+  });
 }
 
 function authenticate(name, password, cb) {
   'use strict';
-  var id;
+  var res;
   UserModel.findOne({name: name}, function (err, user){
     if(password === user.password) {
-      id = user.id;
+      res = user;
     }
-    cb(id);
+    cb(res, res.id);
   });
 }
 
@@ -50,7 +51,8 @@ function updateInfo(id, body, cb) {
   'use strict';
   UserModel.findById(id, function (err, user){
     if((body.name === user.name) && (body.password === user.password)){
-      UserModel.findByIdAndUpdate(id, body, function(){
+      UserModel.findByIdAndUpdate(id, _.omit(body, ['memUsed', 'maxMem',
+        'maxReq', 'queues', 'trans']), function(){
         cb(err);
       });
     }
@@ -62,45 +64,51 @@ function updateInfo(id, body, cb) {
 function deleteUser(id, cb) {
   'use strict';
   UserModel.findById(id, function(err, user){
-      user.remove(function(err){
-        cb(err);
-      });
-  });
-}
-
-function addTrans(idUser, idTrans, cb){
-  'use strict';
-  UserModel.findById(idUser, function (err, user){
-    user.trans.push(idTrans);
-    user.save(function(err){
+    user.remove(function(err){
       cb(err);
     });
   });
 }
 
-function incMem (idUser, bytes, cb) {
+function addTrans(user, idTrans, bytes, cb){
   'use strict';
-  UserModel.findById(idUser, function (err, user) {
-    var mem = user.memUsed + bytes;
-    if(mem <= user.maxMem) {
-      user.memUsed = mem;
-      user.save(function (err){
-        cb(err);
-      });
-    } else {
-        var error = true;
-        cb(error);
-    }
+  user.trans.push(idTrans);
+  user.memUsed = user.memUsed + bytes;
+  user.save(function(err){
+    cb(err);
   });
 }
 
-function decMem (idUser, bytes, cb) {
+function isYourTrans (user, idTrans, cb) {
+  'user strict';
+  var found;
+  var index = user.trans.indexOf(idTrans);
+  if(index !== -1) {
+    found = true;
+  } else {
+    found = false;
+  }
+  cb(found);
+}
+
+function canIncMem (user, bytes, cb) {
   'use strict';
-  UserModel.findById(idUser, function (err, user) {
-    user.memUsed = user.memUsed - bytes;
-    user.save(function (err) {
-      cb(err);
-    });
+  var inc;
+  var mem = user.memUsed + bytes;
+  if(mem <= user.maxMem) {
+    user.memUsed = mem;
+    inc = true;
+  } else {
+    inc = false;
+  }
+  cb(inc);
+}
+
+function decMem (user, bytes, cb) {
+  'use strict';
+  user.memUsed = user.memUsed - bytes;
+  user.save(function (err) {
+    cb(err);
   });
 }
 
@@ -110,5 +118,5 @@ exports.addTrans = addTrans;
 exports.authenticate = authenticate;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
-exports.incMem = incMem,
+exports.canIncMem = incMem,
 exports.decMem = decMem;
