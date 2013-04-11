@@ -114,7 +114,7 @@ app.put('/trans/:id_trans', function (){
                 res.send({errors: [err]}, 400);
               } else {
                 var memUsed = user.memUsed - data.payload.length;
-                if((memUsed + req.body.payload) <= user.maxMem) {
+                if((memUsed + req.body.payload.length()) <= user.maxMem) {
                   heads = {};
                   heads['content-type'] = 'application/json';
                   heads['accept'] = 'application/json';
@@ -127,7 +127,9 @@ app.put('/trans/:id_trans', function (){
                     if(err) {
                       res.send({errors: [err]}, 400);
                     } else {
-                      res.send({ok: true}, 200);
+                      userDb.incMem(user, req.body.payload.length(), function (err){
+                        res.send({ok: true}, 200);
+                      });
                     }
                   });
                 }

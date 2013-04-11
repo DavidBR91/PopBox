@@ -104,6 +104,14 @@ function canIncMem (user, bytes, cb) {
   cb(inc);
 }
 
+function incMem (user, bytes, cb) {
+  'use strict';
+  user.memUsed = user.memUsed + bytes;
+  user.save(function (err) {
+    cb(err);
+  });
+}
+
 function decMem (user, bytes, cb) {
   'use strict';
   user.memUsed = user.memUsed - bytes;
@@ -120,3 +128,4 @@ exports.deleteUser = deleteUser;
 exports.addUser = addUser;
 exports.canIncMem = incMem,
 exports.decMem = decMem;
+exports.incMem = incMem;
