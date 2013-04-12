@@ -161,7 +161,7 @@ app.post('/trans', function (req, res){
   'use strict';
   userDb.authenticate(req.body.name, req.body.password, function (user, id){
     if(user !== undefined){
-      userDb.canIncMem(id, req.payload.length, function (inc){
+      userDb.canIncMem(user, req.payload.length, function (inc){
         if(inc === true) {
           var heads = {};
           heads['content-type'] = 'application/json';
@@ -169,6 +169,10 @@ app.post('/trans', function (req, res){
             port: config.agentHosts[0].port, path: '/trans/',
             method: 'POST', headers: heads};
           var body = _.omit(req.body, ['name', 'password']);
+          for (var i = 0; i <= body.queues.length; i++) {
+            body.queues[i] = body.queues[i].value +
+              '-' + id;
+          }
           utils.makeRequest(options, body, function (err, response, data){
             if(err){
             res.send({errors: [err]}, 400);
@@ -178,8 +182,8 @@ app.post('/trans', function (req, res){
                   res.send({errors: [err]}, 400);
                 } else {
                 res.send({ok: true, id: data.data}, 200);
-              }
-            });
+               }
+             });
             }
           });
         }
@@ -188,6 +192,56 @@ app.post('/trans', function (req, res){
   });
 });
 
-app.get('/queue/:id', function (){});
-app.post('/queue/:id/pop', function (){});
-app.get('/queue/:id/peek', function (){});
+app.get('/queue/:id', function (req, res){
+  'use strict';
+  var idQueue = req.param('id', null);
+  userDb.authenticate(req.body, req.body.name, function (user, id) {
+    if(user !== undefined) {
+      user.isYourQueue(user, idQueue, function (found) {
+        if (found === true) {
+          var heads = {};
+          heads['accept'] = 'application/json';
+          idQueue = idQueue + '-' + id;
+          var options = {host: config.agentHosts[0].host,
+            port: config.agentHosts[0].port,
+            path: '/queue/' + idQueue, method: 'GET',
+            headers: heads};
+          utils.makeRequest(options, null, function (err, response, data) {
+            if(err) {
+              res.send({errors: [err]}, 400);
+            } else {
+              res.send({ok: true, data: data.data}, 200);
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
+app.post('/queue/:id/pop', function (req, res){});
+
+app.get('/queue/:id/peek', function (req, res){
+  'use strict';
+  var idQueue = req.param('id', null);
+  userDb.authenticate(req.body, req.body.name, function (user, id) {
+    if(user !== undefined) {
+      user.isYourQueue(user, idQueue, function (found) {
+        var heads = {};
+          heads['accept'] = 'application/json';
+          idQueue = idQueue + '-' + id;
+          var options = {host: config.agentHosts[0].host,
+            port: config.agentHosts[0].port,
+            path: '/queue/' + idQueue, method: 'GET',
+            headers: heads};
+          utils.makeRequest(options, null, function (err, response, data) {
+            if(err) {
+              res.send({errors: [err]}, 400);
+            } else {
+              res.send({ok:true, data: data.data});
+            }
+          });
+      });
+    }
+  });
+});

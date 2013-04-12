@@ -91,6 +91,18 @@ function isYourTrans (user, idTrans, cb) {
   cb(found);
 }
 
+function isYourQueue (user, idQueue, cb) {
+  'use strict';
+  var found;
+  var index = user.queues.indexOf(idQueue);
+  if (index !== -1) {
+    found = true;
+  } else {
+    found = false;
+  }
+  cb(found);
+}
+
 function canIncMem (user, bytes, cb) {
   'use strict';
   var inc;
