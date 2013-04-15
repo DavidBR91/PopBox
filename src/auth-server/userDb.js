@@ -79,6 +79,16 @@ function addTrans(user, idTrans, bytes, cb){
   });
 }
 
+function addQueues(user, queues, cb) {
+  'use strict';
+  for(var i = 0; i< queues.length; i++) {
+    user.queues.push(queues[i]);
+  }
+  user.save(function(err) {
+    cb(err);
+  });
+}
+
 function isYourTrans (user, idTrans, cb) {
   'user strict';
   var found;
@@ -138,6 +148,8 @@ exports.addTrans = addTrans;
 exports.authenticate = authenticate;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
-exports.canIncMem = incMem,
+exports.canIncMem = canIncMem,
 exports.decMem = decMem;
 exports.incMem = incMem;
+exports.isYourTrans = isYourTrans;
+exports.addQueues = addQueues;
