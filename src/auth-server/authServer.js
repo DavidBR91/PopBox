@@ -201,7 +201,7 @@ app.post('/trans', function (req, res){
   });
 });
 
-app.get('/queue/:id', function (req, res){
+app.post('/queue/:id', function (req, res){
   'use strict';
   var idQueue = req.param('id', null);
   userDb.authenticate(req.body, req.body.name, function (user, id) {
@@ -228,28 +228,55 @@ app.get('/queue/:id', function (req, res){
   });
 });
 
-app.post('/queue/:id/pop', function (req, res){});
-
-app.get('/queue/:id/peek', function (req, res){
+app.post('/queue/:id/pop', function (req, res){
   'use strict';
   var idQueue = req.param('id', null);
   userDb.authenticate(req.body, req.body.name, function (user, id) {
     if(user !== undefined) {
       user.isYourQueue(user, idQueue, function (found) {
-        var heads = {};
+        if (found === true) {
+          var heads = {};
           heads['accept'] = 'application/json';
           idQueue = idQueue + '-' + id;
           var options = {host: config.agentHosts[0].host,
             port: config.agentHosts[0].port,
-            path: '/queue/' + idQueue, method: 'GET',
+            path: '/queue/' + idQueue + '/pop', method: 'POST',
             headers: heads};
           utils.makeRequest(options, null, function (err, response, data) {
             if(err) {
               res.send({errors: [err]}, 400);
             } else {
-              res.send({ok:true, data: data.data});
+              res.send({ok: true, data: data.data});
             }
           });
+        }
+      });
+    }
+  });
+});
+
+app.post('/queue/:id/peek', function (req, res){
+ 'use strict';
+  var idQueue = req.param('id', null);
+  userDb.authenticate(req.body, req.body.name, function (user, id) {
+    if(user !== undefined) {
+      user.isYourQueue(user, idQueue, function (found) {
+        if (found === true) {
+          var heads = {};
+          heads['accept'] = 'application/json';
+          idQueue = idQueue + '-' + id;
+          var options = {host: config.agentHosts[0].host,
+            port: config.agentHosts[0].port,
+            path: '/queue/' + idQueue + '/peek', method: 'POST',
+            headers: heads};
+          utils.makeRequest(options, null, function (err, response, data) {
+            if(err) {
+              res.send({errors: [err]}, 400);
+            } else {
+              res.send({ok: true, data: data.data});
+            }
+          });
+        }
       });
     }
   });
