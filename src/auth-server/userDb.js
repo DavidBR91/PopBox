@@ -153,3 +153,4 @@ exports.decMem = decMem;
 exports.incMem = incMem;
 exports.isYourTrans = isYourTrans;
 exports.addQueues = addQueues;
+exports.isYourQueue = isYourQueue;

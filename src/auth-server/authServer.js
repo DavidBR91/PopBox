@@ -206,7 +206,7 @@ app.post('/queue/:id', function (req, res){
   var idQueue = req.param('id', null);
   userDb.authenticate(req.body, req.body.name, function (user, id) {
     if(user !== undefined) {
-      user.isYourQueue(user, idQueue, function (found) {
+      userDb.isYourQueue(user, idQueue, function (found) {
         if (found === true) {
           var heads = {};
           heads['accept'] = 'application/json';
@@ -231,9 +231,9 @@ app.post('/queue/:id', function (req, res){
 app.post('/queue/:id/pop', function (req, res){
   'use strict';
   var idQueue = req.param('id', null);
-  userDb.authenticate(req.body, req.body.name, function (user, id) {
+  userDb.authenticate(req.body.name, req.body.password, function (user, id) {
     if(user !== undefined) {
-      user.isYourQueue(user, idQueue, function (found) {
+      userDb.isYourQueue(user, idQueue, function (found) {
         if (found === true) {
           var heads = {};
           heads['accept'] = 'application/json';
@@ -258,17 +258,19 @@ app.post('/queue/:id/pop', function (req, res){
 app.post('/queue/:id/peek', function (req, res){
  'use strict';
   var idQueue = req.param('id', null);
-  userDb.authenticate(req.body, req.body.name, function (user, id) {
+  console.log(req.body);
+  userDb.authenticate(req.body.name, req.body.password, function (user, id) {
     if(user !== undefined) {
-      user.isYourQueue(user, idQueue, function (found) {
+      userDb.isYourQueue(user, idQueue, function (found) {
         if (found === true) {
           var heads = {};
           heads['accept'] = 'application/json';
           idQueue = idQueue + '-' + id;
           var options = {host: config.agentHosts[0].host,
             port: config.agentHosts[0].port,
-            path: '/queue/' + idQueue + '/peek', method: 'POST',
+            path: '/queue/' + idQueue + '/peek', method: 'GET',
             headers: heads};
+                                  console.log(options.path);
           utils.makeRequest(options, null, function (err, response, data) {
             if(err) {
               res.send({errors: [err]}, 400);
