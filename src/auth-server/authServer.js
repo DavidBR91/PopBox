@@ -90,8 +90,12 @@ app.post('/trans/:id_trans', function (req, res){
               res.send({ok: true, data: data}, 200);
             }
           });
+        } else {
+          res.send({errors: 'not found'}, 400);
         }
       });
+    } else {
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -153,6 +157,8 @@ app.put('/trans/:id_trans', function (req, res){
           });
         }
       });
+    } else {
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -195,8 +201,12 @@ app.post('/trans', function (req, res){
              });
             }
           });
+        } else {
+          res.send({errors: 'cannot add transaction'});
         }
       });
+    } else {
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -222,8 +232,12 @@ app.post('/queue/:id', function (req, res){
               res.send({ok: true, data: data.data}, 200);
             }
           });
+        } else {
+          res.send({errors: 'not found'}, 400);
         }
       });
+    } else {
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -249,8 +263,12 @@ app.post('/queue/:id/pop', function (req, res){
               res.send({ok: true, data: data.data});
             }
           });
+        } else {
+          res.send({errors: 'not found'}, 400);
         }
       });
+    } else {
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -278,8 +296,12 @@ app.post('/queue/:id/peek', function (req, res){
               res.send({ok: true, data: data.data});
             }
           });
+        } else {
+          res.send({errors: 'not found'}, 400);
         }
       });
+    } else {
+      res.send({errors: 'wrong username of password'}, 400);
     }
   });
 });
