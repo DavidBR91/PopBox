@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var _ = require('underscore');
+var bcrypt = require('bcrypt');
 
 var UserSchema = mongoose.Schema({
   name: {type: String, required: true },
@@ -13,26 +14,29 @@ var UserSchema = mongoose.Schema({
 });
 
 var UserModel = mongoose.model('UserModel', UserSchema);
+var salt = bcrypt.genSaltSync(10);
 
 function addUser(body, cb) {
   'use strict';
-  var user = new UserModel({
-    name: body.name,
-    email: body.email,
-    password: body.password,
-    maxMem: 200000,
-    memUsed: 0,
-    maxReq: 1000
-  });
-  user.save(function(err){
+  bcrypt.hash(body.password, salt, function (err, hash){
+    var user = new UserModel({
+      name: body.name,
+      email: body.email,
+      password: hash,
+      maxMem: 200000,
+      memUsed: 0,
+      maxReq: 1000
+    });
+    user.save(function(err){
       cb(err, user.id);
+    });
   });
 }
 
 function getUser(id, cb){
   'use strict';
   UserModel.findById(id, function (err, user){
-      cb(err, user);
+    cb(err, user);
   });
 }
 
@@ -40,24 +44,20 @@ function authenticate(name, password, cb) {
   'use strict';
   var res;
   UserModel.findOne({name: name}, function (err, user){
-    if(password === user.password) {
-      res = user;
-    }
-    cb(res, res.id);
+    bcrypt.compare(password, user.password, function (err, match){
+      if(match === true) {
+        res = user;
+      }
+      cb(res, res.id);
+    });
   });
 }
 
 function updateInfo(id, body, cb) {
   'use strict';
-  UserModel.findById(id, function (err, user){
-    if((body.name === user.name) && (body.password === user.password)){
-      UserModel.findByIdAndUpdate(id, _.omit(body, ['memUsed', 'maxMem',
-        'maxReq', 'queues', 'trans']), function(){
-        cb(err);
-      });
-    }
-    else
-      cb(err);
+  UserModel.findByIdAndUpdate(id, _.omit(body, ['memUsed', 'maxMem',
+    'maxReq', 'queues', 'trans']), function(){
+    cb(err);
   });
 }
 

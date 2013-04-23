@@ -15,14 +15,19 @@ mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
    config.userDatabase.port + '/' + config.userDatabase.name);
 
 //Rest API TODO: logic
-app.get('/users/:user_id', function (req, res){
+app.post('/users/userInfo', function (req, res){
   'use strict';
-  var id = req.param('user_id', null);
-  userDb.getUser(id, function (err, user){
-    if(err){
-      res.send({errors: [err]}, 400);
+  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+    if(user !== undefined) {
+      userDb.getUser(id, function (err, user){
+        if(err){
+          res.send({errors: [err]}, 400);
+        } else {
+          res.send({ok: true, user: user}, 200);
+        }
+      });
     } else {
-      res.send({ok: true, user: user}, 200);
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -45,26 +50,36 @@ app.post('/users', function (req, res){
   }
 });
 
-app.put('/users/:user_id', function (req, res){
+app.put('/users/userInfo', function (req, res){
   'use strict';
-  var id = req.param('user_id', null);
-  userDb.updateInfo(id, req.body, function (err){
-    if(err){
-      res.send({errors: [err]}, 400);
+  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+    if(user !== undefined) {
+      userDb.updateInfo(id, req.body, function (err){
+        if(err){
+          res.send({errors: [err]}, 400);
+        } else {
+          res.send({ok: true}, 200);
+        }
+      });
     } else {
-      res.send({ok: true}, 200);
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
 
-app.del('/users/:user_id', function (req, res){
+app.post('/users/deleteUser', function (req, res){
   'use strict';
-  var id = req.param('user_id', null);
-  userDb.deleteUser(id, function (err){
-    if(err){
-      res.send({errors: [err]},400);
+  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+    if(user !== undefined) {
+      userDb.deleteUser(id, function (err, user){
+        if(err){
+          res.send({errors: [err]}, 400);
+        } else {
+          res.send({ok: true}, 200);
+        }
+      });
     } else {
-      res.send({ok: true}, 200);
+      res.send({errors: 'wrong username or password'}, 400);
     }
   });
 });
@@ -189,7 +204,6 @@ app.post('/trans', function (req, res){
                 if(err) {
                   res.send({errors: [err]}, 400);
                 } else {
-                  console.log(queuesAux);
                   userDb.addQueues(user, queuesAux, function (err) {
                     if (err) {
                       res.send({errors: [err]}, 400);
@@ -276,7 +290,6 @@ app.post('/queue/:id/pop', function (req, res){
 app.post('/queue/:id/peek', function (req, res){
  'use strict';
   var idQueue = req.param('id', null);
-  console.log(req.body);
   userDb.authenticate(req.body.name, req.body.password, function (user, id) {
     if(user !== undefined) {
       userDb.isYourQueue(user, idQueue, function (found) {
@@ -288,7 +301,6 @@ app.post('/queue/:id/peek', function (req, res){
             port: config.agentHosts[0].port,
             path: '/queue/' + idQueue + '/peek', method: 'GET',
             headers: heads};
-                                  console.log(options.path);
           utils.makeRequest(options, null, function (err, response, data) {
             if(err) {
               res.send({errors: [err]}, 400);
