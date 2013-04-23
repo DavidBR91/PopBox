@@ -15,9 +15,9 @@ mongoose.connect('mongodb://' + config.userDatabase.host + ':' +
    config.userDatabase.port + '/' + config.userDatabase.name);
 
 //Rest API TODO: logic
-app.post('/users/userInfo', function (req, res){
+app.get('/users/userInfo', function (req, res){
   'use strict';
-  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+  userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id){
     if(user !== undefined) {
       userDb.getUser(id, function (err, user){
         if(err){
@@ -27,7 +27,7 @@ app.post('/users/userInfo', function (req, res){
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
@@ -38,7 +38,7 @@ app.post('/users', function (req, res){
     (req.body.password === undefined) ||
     (req.body.email === undefined);
   if(missingParam) {
-    res.send({errors: 'missing param'}, 400);
+    res.send({errors: ['missing param']}, 400);
   } else {
     userDb.addUser(req.body, function (err, id){
       if(err){
@@ -52,7 +52,7 @@ app.post('/users', function (req, res){
 
 app.put('/users/userInfo', function (req, res){
   'use strict';
-  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+  userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id){
     if(user !== undefined) {
       userDb.updateInfo(id, req.body, function (err){
         if(err){
@@ -67,9 +67,9 @@ app.put('/users/userInfo', function (req, res){
   });
 });
 
-app.post('/users/deleteUser', function (req, res){
+app.del('/users/deleteUser', function (req, res){
   'use strict';
-  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+  userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id){
     if(user !== undefined) {
       userDb.deleteUser(id, function (err, user){
         if(err){
@@ -79,7 +79,7 @@ app.post('/users/deleteUser', function (req, res){
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
@@ -87,12 +87,11 @@ app.post('/users/deleteUser', function (req, res){
 app.post('/trans/:id_trans', function (req, res){
   'use strict';
   var idTrans = req.param('id_trans', null);
-  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+  userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id){
     if(user !== undefined) {
       userDb.isYourTrans(user, idTrans, function (found) {
         if(found === true) {
-          var heads = {};
-          heads['accept'] = 'application/json';
+          var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           var options = {host: config.agentHosts[0].host,
             port: config.agentHosts[0].port,
             path: '/trans/' + idTrans, method: 'GET',
@@ -102,15 +101,15 @@ app.post('/trans/:id_trans', function (req, res){
               res.send({errors: [err]}, 400);
             }
             else {
-              res.send({ok: true, data: data}, 200);
+              res.send(data, 200);
             }
           });
         } else {
-          res.send({errors: 'not found'}, 400);
+          res.send({errors: ['not found']}, 400);
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
@@ -118,14 +117,13 @@ app.post('/trans/:id_trans', function (req, res){
 app.put('/trans/:id_trans', function (req, res){
   'use strict';
   var idTrans = req.param('id_trans', null);
-  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+  userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id){
     if(user !== undefined) {
       userDb.isYourTrans(user, idTrans, function (found){
         if (req.body.payload !== undefined) {
-          var heads = {};
-          heads['accept'] = 'application/json';
+          var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           var options = {host: config.agentHosts[0].host,
-            port: config.agentHosts[0].port,
+            port: config.agentHosts[0 ].port,
             path: '/trans/' + idTrans, method: 'GET',
             headers: heads};
             utils.makeRequest(options, null, function (err, response, data) {
@@ -167,25 +165,24 @@ app.put('/trans/:id_trans', function (req, res){
               if(err) {
                 res.send({errors: [err]}, 400);
               } else {
-                res.send({ok: true}, 200);
+                res.send(data, 200);
               }
           });
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
 
 app.post('/trans', function (req, res){
   'use strict';
-  userDb.authenticate(req.body.name, req.body.password, function (user, id){
+  userDb.authenticate(req.body['name'], req.body['password'], function (user, id){
     if(user !== undefined){
       userDb.canIncMem(user, req.body.payload.length, function (inc){
         if(inc === true) {
-          var heads = {};
-          heads['content-type'] = 'application/json';
+          var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           var options = { host: config.agentHosts[0].host,
             port: config.agentHosts[0].port, path: '/trans/',
             method: 'POST', headers: heads};
@@ -208,7 +205,7 @@ app.post('/trans', function (req, res){
                     if (err) {
                       res.send({errors: [err]}, 400);
                     } else {
-                      res.send({ok: true, id: data.data}, 200);
+                      res.send(data, 200);
                     }
                   });
                }
@@ -216,11 +213,11 @@ app.post('/trans', function (req, res){
             }
           });
         } else {
-          res.send({errors: 'cannot add transaction'});
+          res.send({errors: ['cannot add transaction']});
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
@@ -228,12 +225,11 @@ app.post('/trans', function (req, res){
 app.post('/queue/:id', function (req, res){
   'use strict';
   var idQueue = req.param('id', null);
-  userDb.authenticate(req.body, req.body.name, function (user, id) {
+  userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id) {
     if(user !== undefined) {
       userDb.isYourQueue(user, idQueue, function (found) {
         if (found === true) {
-          var heads = {};
-          heads['accept'] = 'application/json';
+          var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           idQueue = idQueue + '-' + id;
           var options = {host: config.agentHosts[0].host,
             port: config.agentHosts[0].port,
@@ -243,15 +239,15 @@ app.post('/queue/:id', function (req, res){
             if(err) {
               res.send({errors: [err]}, 400);
             } else {
-              res.send({ok: true, data: data.data}, 200);
+              res.send(data, 200);
             }
           });
         } else {
-          res.send({errors: 'not found'}, 400);
+          res.send({errors: ['not found']}, 400);
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
@@ -259,12 +255,11 @@ app.post('/queue/:id', function (req, res){
 app.post('/queue/:id/pop', function (req, res){
   'use strict';
   var idQueue = req.param('id', null);
-  userDb.authenticate(req.body.name, req.body.password, function (user, id) {
+  userDb.authenticate(req.headers['name'], req.body['password'], function (user, id) {
     if(user !== undefined) {
       userDb.isYourQueue(user, idQueue, function (found) {
         if (found === true) {
-          var heads = {};
-          heads['accept'] = 'application/json';
+          var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           idQueue = idQueue + '-' + id;
           var options = {host: config.agentHosts[0].host,
             port: config.agentHosts[0].port,
@@ -274,15 +269,15 @@ app.post('/queue/:id/pop', function (req, res){
             if(err) {
               res.send({errors: [err]}, 400);
             } else {
-              res.send({ok: true, data: data.data});
+              res.send(data, 200);
             }
           });
         } else {
-          res.send({errors: 'not found'}, 400);
+          res.send({errors: ['not found']}, 400);
         }
       });
     } else {
-      res.send({errors: 'wrong username or password'}, 400);
+      res.send({errors: ['wrong username or password']}, 400);
     }
   });
 });
@@ -290,12 +285,11 @@ app.post('/queue/:id/pop', function (req, res){
 app.post('/queue/:id/peek', function (req, res){
  'use strict';
   var idQueue = req.param('id', null);
-  userDb.authenticate(req.body.name, req.body.password, function (user, id) {
+  userDb.authenticate(req.body['name'], req.body['password'], function (user, id) {
     if(user !== undefined) {
       userDb.isYourQueue(user, idQueue, function (found) {
         if (found === true) {
-          var heads = {};
-          heads['accept'] = 'application/json';
+          var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           idQueue = idQueue + '-' + id;
           var options = {host: config.agentHosts[0].host,
             port: config.agentHosts[0].port,
@@ -305,15 +299,15 @@ app.post('/queue/:id/peek', function (req, res){
             if(err) {
               res.send({errors: [err]}, 400);
             } else {
-              res.send({ok: true, data: data.data});
+              res.send(data, 200);
             }
           });
         } else {
-          res.send({errors: 'not found'}, 400);
+          res.send({errors: ['not found']}, 400);
         }
       });
     } else {
-      res.send({errors: 'wrong username of password'}, 400);
+      res.send({errors: ['wrong username of password']}, 400);
     }
   });
 });
