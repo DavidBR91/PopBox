@@ -84,7 +84,7 @@ app.del('/users/deleteUser', function (req, res){
   });
 });
 
-app.post('/trans/:id_trans', function (req, res){
+app.get('/trans/:id_trans', function (req, res){
   'use strict';
   var idTrans = req.param('id_trans', null);
   userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id){
@@ -180,7 +180,8 @@ app.post('/trans', function (req, res){
   'use strict';
   userDb.authenticate(req.body['name'], req.body['password'], function (user, id){
     if(user !== undefined){
-      userDb.canIncMem(user, req.body.payload.length, function (inc){
+      userDb.canAddTrans(user, req.body.payload.length, req.body.expirationDate,
+       function (inc){
         if(inc === true) {
           var heads = _.omit(req.headers, [req.headers['name'], req.headers['password']]);
           var options = { host: config.agentHosts[0].host,
@@ -222,7 +223,7 @@ app.post('/trans', function (req, res){
   });
 });
 
-app.post('/queue/:id', function (req, res){
+app.get('/queue/:id', function (req, res){
   'use strict';
   var idQueue = req.param('id', null);
   userDb.authenticate(req.headers['name'], req.headers['password'], function (user, id) {
