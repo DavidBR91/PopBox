@@ -6,9 +6,9 @@ var UserSchema = mongoose.Schema({
   name: {type: String, required: true },
   email: {type: String, required: true},
   password: {type: String, required: true},
-  memUsed: {type: Number, required: true},
-  maxMem: {type: Number, required: true},
+  maxPayload: {type: Number, required: true},
   maxReq: {type: Number, required: true},
+  maxExpirationDate: {type: Number, required: true},
   queues: [{type: String, required: false}],
   trans: [{type: String, required: false}]
 });
@@ -23,8 +23,8 @@ function addUser(body, cb) {
       name: body.name,
       email: body.email,
       password: hash,
-      maxMem: 200000,
-      memUsed: 0,
+      maxPayload: 20000,
+      maxExpirationDate: 1,
       maxReq: 1000
     });
     user.save(function(err){
@@ -113,32 +113,35 @@ function isYourQueue (user, idQueue, cb) {
   cb(found);
 }
 
-function canIncMem (user, bytes, cb) {
+function checkPayload (userMaxPayload, payloadLength, cb) {
   'use strict';
-  var inc;
-  var mem = user.memUsed + bytes;
-  if(mem <= user.maxMem) {
-    user.memUsed = mem;
-    inc = true;
-  } else {
-    inc = false;
+  var res = false;
+  if (payloadLength <= userMaxPayload) {
+    res = true;
   }
-  cb(inc);
+  cb(res);
 }
 
-function incMem (user, bytes, cb) {
+function checkExpirationDate (userMaxExpirationDate, expirationDate, cb) {
   'use strict';
-  user.memUsed = user.memUsed + bytes;
-  user.save(function (err) {
-    cb(err);
-  });
+  var res = false;
+  var maxExpirationDate = Math.round(new Date().getTime()) +
+    (2592000 * userMaxExpirationDate);
+  if(expirationDate <= maxExpirationDate) {
+    res = true;
+  }
+  cb(res);
 }
 
-function decMem (user, bytes, cb) {
+function canAddTrans (user, payloadLength, expirationDate, cb) {
   'use strict';
-  user.memUsed = user.memUsed - bytes;
-  user.save(function (err) {
-    cb(err);
+  var checked = false;
+  checkPayload(user.maxPayload, payloadLength, function (res) {
+    checked = res;
+    checkExpirationDate(user.maxExpirationDate, expirationDate, function (res){
+      checked = checked && res;
+      cb(checked);
+    });
   });
 }
 
@@ -148,9 +151,8 @@ exports.addTrans = addTrans;
 exports.authenticate = authenticate;
 exports.deleteUser = deleteUser;
 exports.addUser = addUser;
-exports.canIncMem = canIncMem,
-exports.decMem = decMem;
-exports.incMem = incMem;
 exports.isYourTrans = isYourTrans;
 exports.addQueues = addQueues;
 exports.isYourQueue = isYourQueue;
+exports.checkPayload = checkPayload;
+exports.canAddTrans = canAddTrans;
