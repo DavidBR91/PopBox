@@ -55,7 +55,7 @@ function authenticate(name, password, cb) {
 
 function updateInfo(id, body, cb) {
   'use strict';
-  UserModel.findByIdAndUpdate(id, _.omit(body, ['memUsed', 'maxMem',
+  UserModel.findByIdAndUpdate(id, _.omit(body, ['maxPayload', 'maxExpirationDate',
     'maxReq', 'queues', 'trans']), function(){
     cb(err);
   });
@@ -142,6 +142,14 @@ function canAddTrans (user, payloadLength, expirationDate, cb) {
       checked = checked && res;
       cb(checked);
     });
+  });
+}
+
+function increaseUserPayload (user, payloadIncrease, cb) {
+  'use strict';
+  user.maxPayload = user.maxPayload + payloadIncrease;
+  user.save(function (err) {
+    cb(err);
   });
 }
 
