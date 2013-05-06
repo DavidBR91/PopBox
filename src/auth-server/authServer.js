@@ -5,8 +5,21 @@ var userDb = require('./userDb');
 var utils = require('./utils');
 var _ = require('underscore');
 var paymentGw = require('./paymentGw');
+var path = require('path');
 
-var app = express.createServer();
+var dirModule = path.dirname(module.filename);
+
+var certDir = {
+  key: path.resolve(dirModule, './utils/server.key'),
+  cert: path.resolve(dirModule, './utils/server.crt')
+};
+
+var options = {
+  key: fs.readFileSync(certDir.key),
+  cert: fs.readFileSync(certDir.cert)
+};
+
+var app = express.createServer(options);
 
 app.listen(7777);
 app.use(express.query());
