@@ -4,7 +4,7 @@ var config = require('./config');
 var userDb = require('./userDb');
 var utils = require('./utils');
 var _ = require('underscore');
-var paymentGw = require('./paymentGw');
+var paymentGw = require('./paymentGateway');
 var path = require('path');
 
 var dirModule = path.dirname(module.filename);
