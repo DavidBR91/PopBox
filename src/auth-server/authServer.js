@@ -4,6 +4,7 @@ var config = require('./config');
 var userDb = require('./userDb');
 var utils = require('./utils');
 var _ = require('underscore');
+var paymentGw = require('./paymentGw');
 
 var app = express.createServer();
 
@@ -83,6 +84,9 @@ app.del('/users/deleteUser', function (req, res){
     }
   });
 });
+
+app.post('users/increasePayload', paymentGw.increasePayload);
+app.post('users/increaseExpirationDate', payment.increaseExpirationDate);
 
 app.get('/trans/:id_trans', function (req, res){
   'use strict';

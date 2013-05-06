@@ -153,6 +153,14 @@ function increaseUserPayload (user, payloadIncrease, cb) {
   });
 }
 
+function increaseUserExpiration (user, expirationIncrease, cb) {
+  'use strict';
+  user.maxExpirationDate = user.maxExpirationDate + expirationIncrease;
+  user.save(function (err) {
+    cb(err);
+  });
+}
+
 exports.getUser = getUser;
 exports.updateInfo = updateInfo;
 exports.addTrans = addTrans;
@@ -164,3 +172,5 @@ exports.addQueues = addQueues;
 exports.isYourQueue = isYourQueue;
 exports.checkPayload = checkPayload;
 exports.canAddTrans = canAddTrans;
+exports.increaseUserPayload = increaseUserPayload;
+exports.increaseUserExpiration = increaseUserExpiration;
